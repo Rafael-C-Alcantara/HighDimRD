@@ -150,9 +150,6 @@ HighDim_rd <- function(Y,X,Z,c=0,rd="robust",level=0.95,b=NULL,bfactor=1,h=NULL,
     if(rd=="robust") {
       bout <- rdrobust::rdbwselect(Y,X,c=c,bwselect="mserd",kernel=kernel)
       b <- bout$bws[1]
-    } else {
-      bout <- RDHonest::RDHonest(Y~X,cutoff=c,M=C,kern=kernel,opt.criterion="FLCI",alpha=1-level,sclass=sclass)
-      b <- bout$coefficients$bandwidth
     }
   }
 
@@ -214,17 +211,6 @@ HighDim_rd <- function(Y,X,Z,c=0,rd="robust",level=0.95,b=NULL,bfactor=1,h=NULL,
       if(rd=="robust") {
         hout <- rdrobust::rdbwselect(Y,X,covs=Z[,sig_cov],c=c,bwselect="mserd",kernel=kernel)
         h <- hout$bws[1]
-      } else {
-        ## Adjust for Covariate Influence
-        cov_fit <- lm(Z[,sig_cov]~1+X+T+X*T,weights=kernel_factor)
-        v <- cov_fit$residuals
-        Sigma22 <- t(v)%*%(v*kernel_factor)/n
-        Sigma21 <- colSums(as.matrix(v*(kernel_factor*Y)))/n
-        Sigma <- solve(Sigma22)%*%Sigma21
-        Ytilde <- Y-Z[,sig_cov]%*%Sigma
-
-        hout <- RDHonest::RDHonest(Ytilde~X,cutoff=c,M=C,kern=kernel,opt.criterion="FLCI",alpha=1-level,sclass=sclass)
-        h <- hout$coefficients$bandwidth
       }
     }
   }
@@ -233,14 +219,10 @@ HighDim_rd <- function(Y,X,Z,c=0,rd="robust",level=0.95,b=NULL,bfactor=1,h=NULL,
   if(length(sig_cov)==0) {
     if(rd=="robust") {
       RDfit <- rdrobust::rdrobust(Y,X,c=c,h=h,b=h,kernel=kernel,level=level*100)
-    } else {
-      RDfit <- RDHonest::RDHonest(Y~X,cutoff=c,M=C,kern=kernel,opt.criterion="FLCI",h=h,alpha=1-level,sclass=sclass)
     }
   } else {
     if(rd=="robust") {
       RDfit <- rdrobust::rdrobust(Y,X,c=c,h=h,b=h,covs=Z[,sig_cov],kernel=kernel,level=level*100)
-    } else {
-      RDfit <- RDHonest::RDHonest(Ytilde~X,cutoff=c,M=C,kern=kernel,opt.criterion="FLCI",h=h,alpha=1-level,sclass=sclass)
     }
   }
 
