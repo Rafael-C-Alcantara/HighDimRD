@@ -28,5 +28,4 @@ RoxygenNote: 7.1.2
 Imports: 
     glmnet,
     rdrobust,
-    Matrix,
-    RDHonest
+    Matrix
